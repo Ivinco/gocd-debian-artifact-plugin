@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<go-plugin id="io.artifactkeeper.gocd.debian" version="1">
+  <about>
+    <name>ArtifactKeeper Debian Artifact Plugin</name>
+    <version>1.0.0</version>
+    <target-go-version>18.11.0</target-go-version>
+    <description>Publishes .deb packages built by a GoCD job to a hosted Debian repository on ArtifactKeeper as a pluggable external artifact.</description>
+    <vendor>
+      <name>gocd-debian-artifact-plugin contributors</name>
+      <url>https://github.com/CHANGEME/gocd-debian-artifact-plugin</url>
+    </vendor>
+    <target-os />
+  </about>
+  <extensions>
+    <extension plugin-id="io.artifactkeeper.gocd.debian">
+      <artifact version="2.0" />
+    </extension>
+  </extensions>
+</go-plugin>

@@ -1,0 +1,12 @@
+<div class="form_item_block">
+  <label>File pattern:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Pattern" ng-required="true" placeholder="*.deb"/>
+  <span class="form_error" ng-show="GOINPUTNAME[Pattern].$error.server">{{GOINPUTNAME[Pattern].$error.server}}</span>
+  <span class="form_help">Glob, relative to the job's working directory. Matches every file the job produced that should be published, e.g. <code>*.deb</code> or <code>dist/**/*.deb</code>.</span>
+</div>
+<div class="form_item_block">
+  <label>Pool component:</label>
+  <input type="text" ng-model="Component" placeholder="main"/>
+  <span class="form_error" ng-show="GOINPUTNAME[Component].$error.server">{{GOINPUTNAME[Component].$error.server}}</span>
+  <span class="form_help">Defaults to "main" if left blank.</span>
+</div>

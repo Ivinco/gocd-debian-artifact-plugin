@@ -1,0 +1,6 @@
+<div class="form_item_block">
+  <label>Destination on agent:</label>
+  <input type="text" ng-model="DestinationOnAgent" placeholder="."/>
+  <span class="form_error" ng-show="GOINPUTNAME[DestinationOnAgent].$error.server">{{GOINPUTNAME[DestinationOnAgent].$error.server}}</span>
+  <span class="form_help">Relative to the job's working directory. Defaults to the working directory itself.</span>
+</div>

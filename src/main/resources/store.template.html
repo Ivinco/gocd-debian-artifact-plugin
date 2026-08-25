@@ -1,0 +1,20 @@
+<div class="form_item_block">
+  <label>ArtifactKeeper base URL:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="RegistryUrl" ng-required="true" placeholder="https://artifactkeeper.example.com"/>
+  <span class="form_error" ng-show="GOINPUTNAME[RegistryUrl].$error.server">{{GOINPUTNAME[RegistryUrl].$error.server}}</span>
+</div>
+<div class="form_item_block">
+  <label>Repository key:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="RepositoryKey" ng-required="true" placeholder="internal"/>
+  <span class="form_error" ng-show="GOINPUTNAME[RepositoryKey].$error.server">{{GOINPUTNAME[RepositoryKey].$error.server}}</span>
+</div>
+<div class="form_item_block">
+  <label>Username:<span class="asterisk">*</span></label>
+  <input type="text" ng-model="Username" ng-required="true" placeholder="svc-gocd-publisher"/>
+  <span class="form_error" ng-show="GOINPUTNAME[Username].$error.server">{{GOINPUTNAME[Username].$error.server}}</span>
+</div>
+<div class="form_item_block">
+  <label>API token:<span class="asterisk">*</span></label>
+  <input type="password" ng-model="Password" ng-required="true"/>
+  <span class="form_error" ng-show="GOINPUTNAME[Password].$error.server">{{GOINPUTNAME[Password].$error.server}}</span>
+</div>
