@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,7 +66,25 @@ class ArtifactKeeperClientTest {
         assertEquals("s", result.poolLetter);
         assertTrue(result.url.endsWith("/debian/custom/pool/main/s/sample-app/sample-app_1.1-1_all.deb"));
         assertEquals(64, result.sha256.length());
+        assertFalse(result.alreadyExisted);
         assertTrue(logLines.stream().anyMatch(l -> l.contains("Uploading")));
+
+        Files.deleteIfExists(renamed);
+    }
+
+    @Test
+    void publish_treats_409_as_already_existing_not_a_failure() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(409).setBody("Package already exists"));
+
+        Path deb = Files.createTempFile("sample-app_1.1-1_all", ".deb");
+        Path renamed = deb.resolveSibling("sample-app_1.1-1_all.deb");
+        Files.move(deb, renamed);
+
+        PublishedFile result = client.publish(storeConfig(), "main", renamed, logLines::add);
+
+        assertTrue(result.alreadyExisted);
+        assertEquals("sample-app_1.1-1_all.deb", result.filename);
+        assertTrue(logLines.stream().anyMatch(l -> l.contains("already exists") && l.contains("not re-uploaded")));
 
         Files.deleteIfExists(renamed);
     }
@@ -94,7 +113,7 @@ class ArtifactKeeperClientTest {
         PublishedFile pf = new PublishedFile(
                 "pkg_1.0-1_all.deb", "pkg", "p",
                 server.url("/debian/custom/pool/main/p/pkg/pkg_1.0-1_all.deb").toString(),
-                "irrelevant", 9L);
+                "irrelevant", 9L, false);
 
         client.fetch(storeConfig(), pf, destDir, logLines::add);
 

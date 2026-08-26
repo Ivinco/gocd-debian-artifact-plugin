@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DebianArtifactPluginTest {
@@ -152,7 +153,45 @@ class DebianArtifactPluginTest {
         assertEquals("sample-app_1.1-1_all.deb", file.get("filename").getAsString());
         assertEquals("sample-app", file.get("packageName").getAsString());
         assertTrue(file.get("url").getAsString().endsWith("/debian/custom/pool/main/s/sample-app/sample-app_1.1-1_all.deb"));
+        assertFalse(file.get("alreadyExisted").getAsBoolean());
 
         assertEquals("PUT", server.takeRequest().getMethod());
+    }
+
+    @Test
+    void publish_artifact_surfaces_already_existing_files_without_failing() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(409));
+
+        Path workDir = Files.createTempDirectory("agent-work");
+        Files.writeString(workDir.resolve("sample-app_1.1-1_all.deb"), "deb-bytes");
+
+        JsonObject requestBody = new JsonObject();
+        requestBody.addProperty("agent_working_directory", workDir.toString());
+
+        JsonObject artifactStore = new JsonObject();
+        artifactStore.addProperty("id", "artifact-keeper");
+        JsonObject storeConfiguration = new JsonObject();
+        storeConfiguration.addProperty("RegistryUrl", server.url("/").toString());
+        storeConfiguration.addProperty("RepositoryKey", "custom");
+        storeConfiguration.addProperty("Username", "svc-gocd");
+        storeConfiguration.addProperty("Password", "token");
+        artifactStore.add("configuration", storeConfiguration);
+        requestBody.add("artifact_store", artifactStore);
+
+        JsonObject artifactPlan = new JsonObject();
+        artifactPlan.addProperty("id", "consumer-deb");
+        artifactPlan.addProperty("storeId", "artifact-keeper");
+        JsonObject planConfiguration = new JsonObject();
+        planConfiguration.addProperty("Pattern", "*.deb");
+        artifactPlan.add("configuration", planConfiguration);
+        requestBody.add("artifact_plan", artifactPlan);
+
+        GoPluginApiResponse response = plugin.handle(
+                new FakeGoPluginApiRequest("cd.go.artifact.publish-artifact", JsonUtil.GSON.toJson(requestBody)));
+
+        assertEquals(200, response.responseCode(), "409 from ArtifactKeeper must not fail the publish");
+        JsonObject responseBody = JsonUtil.GSON.fromJson(response.responseBody(), JsonObject.class);
+        JsonObject file = responseBody.getAsJsonObject("metadata").getAsJsonArray("files").get(0).getAsJsonObject();
+        assertTrue(file.get("alreadyExisted").getAsBoolean());
     }
 }

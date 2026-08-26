@@ -72,6 +72,10 @@ final class ArtifactKeeperClient {
         }
 
         HttpResponse<String> response = send(request);
+        if (response.statusCode() == 409) {
+            logger.accept(filename + " already exists at " + url + " - not re-uploaded, pool contents unchanged");
+            return new PublishedFile(filename, packageName, poolLetter, url, sha256, size, true);
+        }
         if (response.statusCode() != 200 && response.statusCode() != 201) {
             throw new ArtifactKeeperException(
                     "Upload of '" + filename + "' to " + url + " failed: HTTP " + response.statusCode()
@@ -79,7 +83,7 @@ final class ArtifactKeeperClient {
         }
 
         logger.accept("Uploaded " + filename + " (HTTP " + response.statusCode() + ")");
-        return new PublishedFile(filename, packageName, poolLetter, url, sha256, size);
+        return new PublishedFile(filename, packageName, poolLetter, url, sha256, size, false);
     }
 
     /** Downloads a previously published file to {@code destDir}, keeping its filename. */

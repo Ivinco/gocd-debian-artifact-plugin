@@ -143,6 +143,7 @@ public class DebianArtifactPlugin implements GoPlugin {
         JsonObject metadata = new JsonObject();
         metadata.addProperty("component", publishConfig.component);
         JsonArray filesJson = new JsonArray();
+        long alreadyExistedCount = published.stream().filter(pf -> pf.alreadyExisted).count();
         for (PublishedFile pf : published) {
             JsonObject fileJson = new JsonObject();
             fileJson.addProperty("filename", pf.filename);
@@ -151,9 +152,15 @@ public class DebianArtifactPlugin implements GoPlugin {
             fileJson.addProperty("url", pf.url);
             fileJson.addProperty("sha256", pf.sha256);
             fileJson.addProperty("sizeBytes", pf.sizeBytes);
+            fileJson.addProperty("alreadyExisted", pf.alreadyExisted);
             filesJson.add(fileJson);
         }
         metadata.add("files", filesJson);
+
+        if (alreadyExistedCount > 0) {
+            log.accept(alreadyExistedCount + " of " + published.size()
+                    + " file(s) already existed in the pool and were NOT re-uploaded (see \"alreadyExisted\" in the artifact metadata)");
+        }
 
         JsonObject response = new JsonObject();
         response.add("metadata", metadata);
@@ -178,7 +185,8 @@ public class DebianArtifactPlugin implements GoPlugin {
                     fileJson.get("poolLetter").getAsString(),
                     fileJson.get("url").getAsString(),
                     fileJson.get("sha256").getAsString(),
-                    fileJson.get("sizeBytes").getAsLong());
+                    fileJson.get("sizeBytes").getAsLong(),
+                    fileJson.has("alreadyExisted") && fileJson.get("alreadyExisted").getAsBoolean());
             client.fetch(store, pf, destDir, log);
         }
 

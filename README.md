@@ -142,9 +142,13 @@ needed to run them.
   (the symmetric form) on the assumption that's a documentation typo — flag
   this loudly in the docs and change one constant in
   `DebianArtifactPlugin.java` if a real server proves otherwise.
-- Re-publishing the same filename overwrites it silently (whatever
-  ArtifactKeeper's own `PUT` semantics are for an existing pool path — not
-  independently verified here).
+- **Re-publishing an existing filename**: verified against a real
+  ArtifactKeeper instance — it responds `409 Package already exists` rather
+  than overwriting. The plugin treats that as success (not a failure —
+  matches CI re-run expectations) but does **not** re-upload, and records
+  `"alreadyExisted": true` on that file in the published artifact metadata
+  plus a console-log line, so it's visible that the pool contents were left
+  untouched rather than silently assumed identical.
 - No retry/backoff on transient network failures — a flaky connection to
   the ArtifactKeeper server fails the job outright.
 - `src/main/resources/plugin.xml`'s `<vendor><url>` is a placeholder
