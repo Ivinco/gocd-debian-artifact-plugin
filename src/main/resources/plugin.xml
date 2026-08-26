@@ -9,11 +9,5 @@
       <name>gocd-debian-artifact-plugin contributors</name>
       <url>https://github.com/CHANGEME/gocd-debian-artifact-plugin</url>
     </vendor>
-    <target-os />
   </about>
-  <extensions>
-    <extension plugin-id="io.artifactkeeper.gocd.debian">
-      <artifact version="2.0" />
-    </extension>
-  </extensions>
 </go-plugin>
