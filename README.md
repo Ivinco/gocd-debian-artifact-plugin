@@ -110,30 +110,6 @@ needed to run them.
 
 ## Known gaps / things to verify before relying on this in production
 
-- **Verified loading cleanly on a real GoCD 25.4.0 server**: dropped into
-  `plugins/external/`, survived a server restart, and the log shows it
-  registered correctly (`Plugin: io.artifactkeeper.gocd.debian ...
-  extension='artifact'`). Getting there took two real schema bugs — see
-  "plugin.xml pitfalls" below. **Not yet exercised**: icon/config-form
-  rendering in the Admin UI, and an actual `publish-artifact`/`fetch-artifact`
-  call from a real job (no Artifact Store or pipeline has been configured
-  against it yet).
-- **plugin.xml pitfalls** (both hit and fixed on the first real deploy,
-  neither caught by the contract docs or by compiling/testing the Java —
-  this is a JAXB-XSD-validated file GoCD parses independently):
-  - `<about><target-os /></about>` — self-closing/empty `target-os` fails
-    schema validation (`cvc-complex-type.2.4.b: ... one of '{value}' is
-    expected`). Omit the element entirely if there's no OS restriction —
-    don't include it empty.
-  - `<extensions>...</extensions>` as a sibling of `<about>` — not valid for
-    `<go-plugin version="1">` at all (`cvc-complex-type.2.4.d: Invalid
-    content was found starting with element 'extensions'`). Extension type
-    is discovered purely at runtime from the `@Extension`-annotated class's
-    `pluginIdentifier()`; `plugin.xml` (this schema version) carries only
-    `id`/`version` attributes plus `<about>`. Confirmed by diffing this
-    project's `plugin.xml` element-for-element against the real, working
-    `docker-registry-artifact-plugin-1.2.0-127.jar`'s `plugin.xml`, which
-    has no `<extensions>` block either.
 - `cd.go.artifact.fetch.validate` — the published extension docs literally
   reuse the string `cd.go.artifact.publish.validate` in the fetch-config
   section, breaking the otherwise perfectly symmetric
@@ -151,6 +127,3 @@ needed to run them.
   untouched rather than silently assumed identical.
 - No retry/backoff on transient network failures — a flaky connection to
   the ArtifactKeeper server fails the job outright.
-- `src/main/resources/plugin.xml`'s `<vendor><url>` is a placeholder
-  (`github.com/CHANGEME/...`) — point it at wherever this project actually
-  ends up living.

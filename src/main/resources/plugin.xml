@@ -7,7 +7,7 @@
     <description>Publishes .deb packages built by a GoCD job to a hosted Debian repository on ArtifactKeeper as a pluggable external artifact.</description>
     <vendor>
       <name>gocd-debian-artifact-plugin contributors</name>
-      <url>https://github.com/CHANGEME/gocd-debian-artifact-plugin</url>
+      <url>https://github.com/Ivinco/gocd-debian-artifact-plugin</url>
     </vendor>
   </about>
 </go-plugin>
