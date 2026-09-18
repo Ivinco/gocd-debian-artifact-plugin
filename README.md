@@ -107,23 +107,3 @@ instance verifying the exact request GoCD would trigger
 every plugin message including an end-to-end `publish-artifact` call
 (`DebianArtifactPluginTest`). No live ArtifactKeeper instance or GoCD server
 needed to run them.
-
-## Known gaps / things to verify before relying on this in production
-
-- `cd.go.artifact.fetch.validate` — the published extension docs literally
-  reuse the string `cd.go.artifact.publish.validate` in the fetch-config
-  section, breaking the otherwise perfectly symmetric
-  `<scope>.get-metadata` / `<scope>.get-view` / `<scope>.validate` naming
-  used everywhere else. Implemented here as `cd.go.artifact.fetch.validate`
-  (the symmetric form) on the assumption that's a documentation typo — flag
-  this loudly in the docs and change one constant in
-  `DebianArtifactPlugin.java` if a real server proves otherwise.
-- **Re-publishing an existing filename**: verified against a real
-  ArtifactKeeper instance — it responds `409 Package already exists` rather
-  than overwriting. The plugin treats that as success (not a failure —
-  matches CI re-run expectations) but does **not** re-upload, and records
-  `"alreadyExisted": true` on that file in the published artifact metadata
-  plus a console-log line, so it's visible that the pool contents were left
-  untouched rather than silently assumed identical.
-- No retry/backoff on transient network failures — a flaky connection to
-  the ArtifactKeeper server fails the job outright.
