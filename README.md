@@ -11,10 +11,12 @@ direction), and `eaiesb/Gocd-Artifactory-Plugin` talks JFrog Artifactory's
 proprietary client API (won't speak to ArtifactKeeper's protocol) and is
 unmaintained since 2017 besides.
 
-**Not installed anywhere.** This is the plugin jar only — installing it on
-a production GoCD server is a separate, deliberate step (a new jar under a
-server other pipelines depend on, requires a server restart) that needs its
-own go-ahead.
+## Requirements
+
+- GoCD server and agents 18.11.0 or newer (Artifact Extension API v2.0).
+- Java 17 on the GoCD server and on every agent that runs a publishing job.
+- An ArtifactKeeper instance with a repository of format **Debian** and a
+  service account allowed to write to it.
 
 ## What it talks to
 
@@ -28,6 +30,10 @@ use:
 - Pool letter follows the standard dpkg convention: first letter of the
   package name, except `lib*` packages use the first four letters (e.g.
   `libssl1.1` → `libs`) — see `DebianPoolPath`.
+- **Re-runs are safe.** If the pool already holds a file with the same name
+  ArtifactKeeper answers `409 Conflict`; the plugin logs that, skips the
+  upload and still reports the job as successful. The artifact metadata
+  marks such files with `alreadyExisted: true`.
 
 ## Configuration
 
@@ -80,9 +86,9 @@ plugin (e.g. the official Docker Registry one) for a pluggable artifact.
 mvn clean package
 ```
 
-Produces `target/gocd-debian-artifact-plugin-1.0.0.jar` (~345 KB, gson
-shaded/relocated in since GoCD loads one plugin per jar with no shared
-classpath; `go-plugin-api` itself is `provided` — the host JVM supplies it).
+Produces `target/gocd-debian-artifact-plugin-1.0.0.jar`. Gson is shaded and
+relocated into the jar, since GoCD loads one plugin per jar with no shared
+classpath; `go-plugin-api` itself is `provided` — the host JVM supplies it.
 
 ## Installing on a GoCD server
 
@@ -100,10 +106,19 @@ Plugin" as an installable store type.
 mvn test
 ```
 
-17 tests: pure unit tests for the pool-letter/package-name logic
+Three layers: pure unit tests for the pool-letter/package-name logic
 (`DebianPoolPathTest`), HTTP-contract tests against a `MockWebServer`
 instance verifying the exact request GoCD would trigger
 (`ArtifactKeeperClientTest`), and full request/response wiring tests for
 every plugin message including an end-to-end `publish-artifact` call
 (`DebianArtifactPluginTest`). No live ArtifactKeeper instance or GoCD server
 needed to run them.
+
+## Contributing
+
+Issues and pull requests are welcome. Please keep `mvn test` green and add
+a test for any change to the HTTP contract or the plugin message handling.
+
+## License
+
+[Apache License 2.0](LICENSE).
